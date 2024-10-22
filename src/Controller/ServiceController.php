@@ -18,7 +18,7 @@ class ServiceController extends AbstractController
     {
         $services = $serviceRepository->findAll();
         $servicesArray = [];
-
+    
         foreach ($services as $service) {
             $servicesArray[] = [
                 'id' => $service->getId(),
@@ -26,30 +26,38 @@ class ServiceController extends AbstractController
                 'description' => $service->getDescription()
             ];
         }
-
+    
         return new JsonResponse($servicesArray, Response::HTTP_OK);
     }
-
+    
     #[Route('/api/services/new', name: 'service_new', methods: ['POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
+    
+        if (empty($data['name']) || empty($data['description'])) {
+            return new JsonResponse(['error' => 'Les champs name et description sont requis.'], Response::HTTP_BAD_REQUEST);
+        }
+    
         $service = new Service();
         $service->setNom($data['name']);
         $service->setDescription($data['description']);
-
+    
         $entityManager->persist($service);
         $entityManager->flush();
-
+    
         return new JsonResponse(['message' => 'Service créé avec succès.'], Response::HTTP_CREATED);
     }
-
+    
     #[Route('/api/services/{id}', name: 'service_delete', methods: ['DELETE'])]
     public function delete(Service $service, EntityManagerInterface $entityManager): JsonResponse
     {
         $entityManager->remove($service);
         $entityManager->flush();
-
+    
         return new JsonResponse(['message' => 'Service supprimé avec succès.'], Response::HTTP_OK);
     }
+    
 }
+
+

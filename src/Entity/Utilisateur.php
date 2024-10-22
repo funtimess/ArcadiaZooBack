@@ -1,59 +1,154 @@
 <?php
 
-// src/Controller/RegistrationController.php
-namespace App\Controller;
+namespace App\Entity;
 
-use App\Entity\Utilisateur;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\UtilisateurRepository;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
-class RegistrationController extends AbstractController
+#[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
+#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
+class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    #[Route('/api/registration', name: 'app_register', methods: ['POST'])]
-    public function register(
-        Request $request,
-        UserPasswordHasherInterface $passwordHasher,
-        EntityManagerInterface $entityManager
-    ): JsonResponse {
-        $data = json_decode($request->getContent(), true);
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
 
-        // Validation simple (vérifier si les champs sont présents)
-        if (empty($data['username']) || empty($data['password']) || empty($data['nom']) || empty($data['prenom']) || empty($data['role'])) {
-            return new JsonResponse(['error' => 'Les champs username, password, nom, prenom et role sont requis.'], Response::HTTP_BAD_REQUEST);
-        }
+    #[ORM\Column(length: 180)]
+    private ?string $username = null;
 
-        // Vérifier si le rôle est valide (admin, employee, vet)
-        if (!in_array($data['role'], ['ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_VET'])) {
-            return new JsonResponse(['error' => 'Rôle invalide. Seuls les rôles admin, employee, et vet sont autorisés.'], Response::HTTP_BAD_REQUEST);
-        }
+    /**
+     * @var list<string> The user roles
+     */
+    #[ORM\Column]
+    private array $roles = [];
 
-        // Créer un nouvel utilisateur
-        $utilisateur = new Utilisateur();
-        $utilisateur->setUsername($data['username']);
-        $utilisateur->setNom($data['nom']);
-        $utilisateur->setPrenom($data['prenom']);
-        
-        // Hacher le mot de passe
-        $hashedPassword = $passwordHasher->hashPassword($utilisateur, $data['password']);
-        $utilisateur->setPassword($hashedPassword);
+    /**
+     * @var string The hashed password
+     */
+    #[ORM\Column]
+    private ?string $password = null;
 
-        // Attribuer le rôle choisi (admin, employee, vet)
-        $utilisateur->setRoles([$data['role']]);
+    #[ORM\Column(length: 50)]
+    private ?string $nom = null;
 
-        // Sauvegarder l'utilisateur en base de données
-        $entityManager->persist($utilisateur);
-        $entityManager->flush();
+    #[ORM\Column(length: 50)]
+    private ?string $prenom = null;
 
-        return new JsonResponse(['message' => 'Utilisateur créé avec succès.'], Response::HTTP_CREATED);
+    #[ORM\ManyToOne(inversedBy: 'utilisateurs')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Role $role = null;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->username;
+    }
+
+    public function setUsername(string $username): static
+    {
+        $this->username = $username;
+
+        return $this;
+    }
+
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->username;
+    }
+
+    /**
+     * @see UserInterface
+     *
+     * @return list<string>
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    /**
+     * @param list<string> $roles
+     */
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+
+        return $this;
+    }
+
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): static
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function eraseCredentials(): void
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
+    }
+
+    public function getNom(): ?string
+    {
+        return $this->nom;
+    }
+
+    public function setNom(string $nom): static
+    {
+        $this->nom = $nom;
+
+        return $this;
+    }
+
+    public function getPrenom(): ?string
+    {
+        return $this->prenom;
+    }
+
+    public function setPrenom(string $prenom): static
+    {
+        $this->prenom = $prenom;
+
+        return $this;
+    }
+
+    public function getRole(): ?Role
+    {
+        return $this->role;
+    }
+
+    public function setRole(?Role $role): static
+    {
+        $this->role = $role;
+
+        return $this;
     }
 }
-
-
-
-
-

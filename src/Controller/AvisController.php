@@ -12,26 +12,25 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AvisController extends AbstractController
 {
-    #[Route('/avis/new', name: 'avis_new')]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/api/avis/new', name: 'avis_new', methods: ['POST'])]
+    public function new(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-        $avis = new Avis();
-        $form = $this->createForm(AvisType::class, $avis);
-
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $avis->setCreatedAt(new \DateTime());
-            $avis->setIsApproved(false); // les avis doivent etre approuvés par un employé
-            $entityManager->persist($avis);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('avis_success');
+        $data = json_decode($request->getContent(), true);
+    
+        if (empty($data['pseudo']) || empty($data['commentaire'])) {
+            return new JsonResponse(['error' => 'Les champs pseudo et commentaire sont requis.'], Response::HTTP_BAD_REQUEST);
         }
-
-        //  twig
-        return $this->render('avis/new.html.twig', [
-            'form' => $form->createView(),
-        ]);
+    
+        $avis = new Avis();
+        $avis->setPseudo($data['pseudo']);
+        $avis->setCommentaire($data['commentaire']);
+        $avis->setCreatedAt(new \DateTime());
+        $avis->setIsApproved(false); // les avis doivent être approuvés par un employé
+    
+        $entityManager->persist($avis);
+        $entityManager->flush();
+    
+        return new JsonResponse(['message' => 'Avis créé avec succès.'], Response::HTTP_CREATED);
     }
+    
 }

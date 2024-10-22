@@ -19,10 +19,10 @@ class Habitat
     #[ORM\Column(length: 50)]
     private ?string $nom = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $commentaire_habitat = null;
 
     /**
@@ -34,7 +34,7 @@ class Habitat
     /**
      * @var Collection<int, Image>
      */
-    #[ORM\OneToMany(targetEntity: Image::class, mappedBy: 'habitat')]
+    #[ORM\ManyToMany(targetEntity: Image::class, inversedBy: 'habitats')]
     private Collection $images;
 
     public function __construct()
@@ -65,7 +65,7 @@ class Habitat
         return $this->description;
     }
 
-    public function setDescription(string $description): static
+    public function setDescription(?string $description): static
     {
         $this->description = $description;
 
@@ -77,7 +77,7 @@ class Habitat
         return $this->commentaire_habitat;
     }
 
-    public function setCommentaireHabitat(string $commentaire_habitat): static
+    public function setCommentaireHabitat(?string $commentaire_habitat): static
     {
         $this->commentaire_habitat = $commentaire_habitat;
 
@@ -126,7 +126,6 @@ class Habitat
     {
         if (!$this->images->contains($image)) {
             $this->images->add($image);
-            $image->setHabitat($this);
         }
 
         return $this;
@@ -134,12 +133,7 @@ class Habitat
 
     public function removeImage(Image $image): static
     {
-        if ($this->images->removeElement($image)) {
-            // set the owning side to null (unless already changed)
-            if ($image->getHabitat() === $this) {
-                $image->setHabitat(null);
-            }
-        }
+        $this->images->removeElement($image);
 
         return $this;
     }

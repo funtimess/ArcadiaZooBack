@@ -15,28 +15,29 @@ class Animal
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(length: 100)]
     private ?string $prenom = null;
 
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(length: 100)]
     private ?string $etat = null;
 
     #[ORM\ManyToOne(inversedBy: 'animals')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Race $race = null;
+    private ?Race $races = null;
 
     #[ORM\ManyToOne(inversedBy: 'animals')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Habitat $habitat = null;
 
     /**
      * @var Collection<int, RapportVeterinaire>
      */
     #[ORM\OneToMany(targetEntity: RapportVeterinaire::class, mappedBy: 'animal')]
-    private Collection $rapportVeterinaires;
+    private Collection $rapportsVeterinaires;
 
     public function __construct()
     {
-        $this->rapportVeterinaires = new ArrayCollection();
+        $this->rapportsVeterinaires = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -68,14 +69,14 @@ class Animal
         return $this;
     }
 
-    public function getRace(): ?Race
+    public function getRaces(): ?Race
     {
-        return $this->race;
+        return $this->races;
     }
 
-    public function setRace(?Race $race): static
+    public function setRaces(?Race $races): static
     {
-        $this->race = $race;
+        $this->races = $races;
 
         return $this;
     }
@@ -95,27 +96,27 @@ class Animal
     /**
      * @return Collection<int, RapportVeterinaire>
      */
-    public function getRapportVeterinaires(): Collection
+    public function getRapportsVeterinaires(): Collection
     {
-        return $this->rapportVeterinaires;
+        return $this->rapportsVeterinaires;
     }
 
-    public function addRapportVeterinaire(RapportVeterinaire $rapportVeterinaire): static
+    public function addRapportsVeterinaire(RapportVeterinaire $rapportsVeterinaire): static
     {
-        if (!$this->rapportVeterinaires->contains($rapportVeterinaire)) {
-            $this->rapportVeterinaires->add($rapportVeterinaire);
-            $rapportVeterinaire->setAnimal($this);
+        if (!$this->rapportsVeterinaires->contains($rapportsVeterinaire)) {
+            $this->rapportsVeterinaires->add($rapportsVeterinaire);
+            $rapportsVeterinaire->setAnimal($this);
         }
 
         return $this;
     }
 
-    public function removeRapportVeterinaire(RapportVeterinaire $rapportVeterinaire): static
+    public function removeRapportsVeterinaire(RapportVeterinaire $rapportsVeterinaire): static
     {
-        if ($this->rapportVeterinaires->removeElement($rapportVeterinaire)) {
+        if ($this->rapportsVeterinaires->removeElement($rapportsVeterinaire)) {
             // set the owning side to null (unless already changed)
-            if ($rapportVeterinaire->getAnimal() === $this) {
-                $rapportVeterinaire->setAnimal(null);
+            if ($rapportsVeterinaire->getAnimal() === $this) {
+                $rapportsVeterinaire->setAnimal(null);
             }
         }
 

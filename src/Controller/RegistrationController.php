@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 class RegistrationController extends AbstractController
 {
@@ -21,30 +23,30 @@ class RegistrationController extends AbstractController
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
-        // verifie si les champs sont present
+        // Validation simple (vérifier si les champs sont présents)
         if (empty($data['username']) || empty($data['password']) || empty($data['nom']) || empty($data['prenom']) || empty($data['role'])) {
             return new JsonResponse(['error' => 'Les champs username, password, nom, prenom et role sont requis.'], Response::HTTP_BAD_REQUEST);
         }
 
-        // verifie si le role est valide admin, employee, vet
+        // Vérifier si le rôle est valide
         if (!in_array($data['role'], ['ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_VET'])) {
             return new JsonResponse(['error' => 'Rôle invalide. Seuls les rôles admin, employee, et vet sont autorisés.'], Response::HTTP_BAD_REQUEST);
         }
 
-        // créer un nouvel utilisateur
+        // Créer un nouvel utilisateur
         $utilisateur = new Utilisateur();
         $utilisateur->setUsername($data['username']);
         $utilisateur->setNom($data['nom']);
         $utilisateur->setPrenom($data['prenom']);
         
-        // hach le mot de passe
+        // Hacher le mot de passe
         $hashedPassword = $passwordHasher->hashPassword($utilisateur, $data['password']);
         $utilisateur->setPassword($hashedPassword);
 
-        // attribuer le rôle choisi admin, employee, vet
+        // Attribuer le rôle choisi (admin, employee, vet)
         $utilisateur->setRoles([$data['role']]);
 
-        // sauvegarde utilisateur en base de donnees
+        // Sauvegarder l'utilisateur en base de données
         $entityManager->persist($utilisateur);
         $entityManager->flush();
 

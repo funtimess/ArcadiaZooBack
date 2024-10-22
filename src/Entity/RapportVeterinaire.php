@@ -17,10 +17,10 @@ class RapportVeterinaire
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $date = null;
 
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(type: Types::TEXT)]
     private ?string $detail = null;
 
-    #[ORM\ManyToOne(inversedBy: 'rapportVeterinaires')]
+    #[ORM\ManyToOne(inversedBy: 'rapportsVeterinaires')]
     private ?Animal $animal = null;
 
     public function getId(): ?int

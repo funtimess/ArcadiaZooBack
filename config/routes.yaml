@@ -1,4 +1,4 @@
 # config/routes.yaml
-imports:
-    - { resource: routes/annotations.yaml }
-
+controllers:
+    resource: '../src/Controller/'
+    type: attribute
