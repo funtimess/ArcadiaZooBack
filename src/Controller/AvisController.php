@@ -3,34 +3,45 @@
 namespace App\Controller;
 
 use App\Entity\Avis;
-use App\Form\AvisType;
+use App\Repository\AvisRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class AvisController extends AbstractController
 {
+    #[Route('/api/avis', name: 'avis_index', methods: ['GET'])]
+    public function index(AvisRepository $avisRepository): JsonResponse
+    {
+        $avisList = $avisRepository->findBy(['isVisible' => true]);
+        $response = array_map(function ($avis) {
+            return [
+                'id' => $avis->getId(),
+                'pseudo' => $avis->getPseudo(),
+                'commentaire' => $avis->getCommentaire(),
+                'isVisible' => $avis->isVisible(),
+            ];
+        }, $avisList);
+
+        return new JsonResponse($response);
+    }
+
     #[Route('/api/avis/new', name: 'avis_new', methods: ['POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-    
-        if (empty($data['pseudo']) || empty($data['commentaire'])) {
-            return new JsonResponse(['error' => 'Les champs pseudo et commentaire sont requis.'], Response::HTTP_BAD_REQUEST);
-        }
-    
+        
         $avis = new Avis();
         $avis->setPseudo($data['pseudo']);
         $avis->setCommentaire($data['commentaire']);
-        $avis->setCreatedAt(new \DateTime());
-        $avis->setIsApproved(false); // les avis doivent être approuvés par un employé
-    
+        $avis->setVisible(false); // Avis soumis mais pas encore validé
+
         $entityManager->persist($avis);
         $entityManager->flush();
-    
-        return new JsonResponse(['message' => 'Avis créé avec succès.'], Response::HTTP_CREATED);
+
+        return new JsonResponse(['message' => 'Avis créé avec succès'], JsonResponse::HTTP_CREATED);
     }
-    
 }
+

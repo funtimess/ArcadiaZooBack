@@ -1,5 +1,5 @@
 <?php
-// src/Security/LoginFailureHandler.php
+// src/Security/
 namespace App\Security;
 
 use Symfony\Component\HttpFoundation\JsonResponse;

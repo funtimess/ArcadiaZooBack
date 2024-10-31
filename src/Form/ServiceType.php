@@ -24,3 +24,4 @@ class ServiceType extends AbstractType
         ]);
     }
 }
+
